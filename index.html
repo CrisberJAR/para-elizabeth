@@ -92,7 +92,7 @@
       font-size: .72rem;
       color: #f3d48a;
     }
-    .bouquet { position: relative; width: 280px; height: 300px; margin-bottom: 6px; }
+    .bouquet { position: relative; width: 280px; height: 340px; margin-bottom: 6px; }
     .sun {
       position: relative;
       width: 280px;
@@ -116,7 +116,7 @@
       border-radius: 50% 50% 46% 46%;
       background: linear-gradient(180deg, #fff8d0 0%, #ffe15a 40%, #f5b400 78%, #e09100 100%);
       transform-origin: center bottom;
-      transform: rotate(var(--r)) scale(.2);
+      transform: rotate(var(--r)) scale(.72);
       transition: transform 1.15s cubic-bezier(.16, 1, .3, 1);
       transition-delay: calc(var(--i) * 32ms);
       box-shadow: inset -8px -10px 14px rgba(160, 80, 0, .16);
@@ -128,18 +128,20 @@
       background: linear-gradient(180deg, #ffd15a, #d98400);
       z-index: 1;
     }
-    .sun.bloomed .petal { transform: rotate(var(--r)) scale(1); }
-    .sun.bloomed .petal.back { transform: rotate(var(--r)) scale(.92); }
+    .sun.bloomed .petal { transform: rotate(var(--r)) scale(1.05); }
+    .sun.bloomed .petal.back { transform: rotate(var(--r)) scale(.96); }
     .core {
-      width: 108px;
-      height: 108px;
-      margin: -54px 0 0 -54px;
+      width: 86px;
+      height: 86px;
+      margin: -43px 0 0 -43px;
       border-radius: 50%;
       z-index: 3;
       background:
-        radial-gradient(circle at 35% 32%, #ffe7a8, transparent 30%),
-        repeating-radial-gradient(circle at 50% 50%, #4a2a0c 0 1.6px, #e09a22 3px 8px);
-      box-shadow: 0 0 0 7px rgba(255, 205, 70, .35), 0 10px 24px rgba(0, 0, 0, .28);
+        radial-gradient(circle at 34% 30%, rgba(255, 236, 180, .7), transparent 26%),
+        radial-gradient(#3d220c 1.15px, transparent 1.35px),
+        radial-gradient(circle at 50% 50%, #f0b02a, #a35a10 72%, #5c300c);
+      background-size: auto, 7px 7px, auto;
+      box-shadow: inset 0 0 0 5px rgba(92, 48, 10, .22), 0 8px 18px rgba(0, 0, 0, .25);
     }
     .sun::before {
       content: "";
@@ -151,20 +153,20 @@
     .stem {
       position: absolute;
       left: 50%;
-      bottom: 0;
-      width: 7px;
-      height: 54px;
-      margin-left: -3px;
-      background: linear-gradient(#4d8a3d, #234222);
+      top: 214px;
+      width: 8px;
+      height: 86px;
+      margin-left: -4px;
+      background: linear-gradient(#5a9a46, #234222);
       border-radius: 8px;
     }
     .stem::before, .stem::after {
       content: "";
       position: absolute;
-      top: 16px;
-      width: 34px;
-      height: 16px;
-      background: linear-gradient(#6aaa4e, #2f6a32);
+      top: 22px;
+      width: 42px;
+      height: 18px;
+      background: linear-gradient(#7cbc5a, #2f6a32);
     }
     .stem::before { right: 4px; border-radius: 0 80% 0 80%; transform: rotate(-18deg); }
     .stem::after { left: 4px; border-radius: 80% 0 80% 0; transform: rotate(18deg); }
@@ -402,21 +404,22 @@
       border-radius: 4px;
     }
     #music {
-      position: fixed;
-      right: 14px;
-      bottom: 14px;
+      position: relative;
       z-index: 8;
+      display: block;
+      margin: 0 auto 18px;
       opacity: 0;
       pointer-events: none;
-      background: rgba(255, 250, 235, .94);
+      background: rgba(255, 250, 235, .96);
       color: #5c3d0c;
       border-radius: 999px;
-      padding: 10px 14px;
+      padding: 10px 16px;
       font-weight: 800;
       box-shadow: 0 8px 24px rgba(60, 30, 0, .16);
       transition: opacity .4s ease;
+      white-space: nowrap;
     }
-    body.started #music { opacity: 1; pointer-events: auto; }
+    body.open #music { opacity: 1; pointer-events: auto; }
     #toast {
       position: fixed;
       left: 50%;
@@ -544,6 +547,7 @@
       <div class="num" id="num">0</div>
     </div>
     <p class="since">años desde que aceptaste<br>ser mi novia</p>
+    <button id="music" type="button" aria-pressed="false">♪ Favorito</button>
     <article class="card">
       <p>Elizabeth,</p>
       <p>Hoy todo se pone amarillo y yo vuelvo a ese día. Al día en que me dijiste que sí.</p>
@@ -560,7 +564,6 @@
     <div class="meadow" id="meadow" aria-hidden="true"></div>
   </main>
 
-  <button id="music" type="button" aria-pressed="false">♪ Favorito</button>
   <div id="toast" role="status"></div>
   <div id="yt"></div>
 
@@ -726,8 +729,11 @@
     let player = null;
     let wantPlay = false;
     let playing = false;
+    let embedFailed = false;
+    const SONG_URL = "https://www.youtube.com/watch?v=2mY7AFTtYwQ";
     window.onYouTubeIframeAPIReady = function () {
       player = new YT.Player("yt", {
+        host: "https://www.youtube-nocookie.com",
         videoId: "2mY7AFTtYwQ",
         playerVars: {
           autoplay: 0,
@@ -755,8 +761,10 @@
               player.playVideo();
             }
           },
-          onError() {
-            musicBtn.textContent = "Música no disponible";
+          onError(event) {
+            embedFailed = true;
+            musicBtn.dataset.error = String(event.data);
+            musicBtn.textContent = "♪ Escuchar Favorito";
           }
         }
       });
@@ -772,7 +780,14 @@
     }
 
     musicBtn.addEventListener("click", () => {
-      if (!player || typeof player.playVideo !== "function") return;
+      if (embedFailed) {
+        window.open(SONG_URL, "_blank", "noopener");
+        return;
+      }
+      if (!player || typeof player.playVideo !== "function") {
+        wantPlay = true;
+        return;
+      }
       if (playing) player.pauseVideo();
       else startMusic();
     });
