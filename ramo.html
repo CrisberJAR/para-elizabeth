@@ -150,14 +150,15 @@
     .note {
       position: fixed;
       z-index: 6;
-      max-width: 15rem;
-      padding: 11px 15px;
-      border-radius: 16px 16px 16px 5px;
+      width: max-content;
+      max-width: min(21rem, 84vw);
+      padding: 12px 16px;
+      border-radius: 18px;
       background: rgba(255, 252, 244, .97);
       color: #4d3a16;
       font-family: "Cormorant Garamond", serif;
-      font-size: 1.14rem;
-      line-height: 1.32;
+      font-size: 1.16rem;
+      line-height: 1.34;
       box-shadow: 0 14px 34px rgba(70, 40, 0, .26);
       transform: translate(-50%, -112%) scale(.9);
       opacity: 0;
@@ -373,18 +374,11 @@
     const letterScreen = document.getElementById("letterScreen");
 
     const GRATITUDE = [
-      "Haces ver fácil lo que no lo es.",
-      "Tu fuerza no se aprende en ningún lado.",
-      "Tienes el don de que un lugar se sienta casa.",
-      "Aconsejas mejor de lo que tú crees.",
-      "Eres valiente incluso cuando tienes miedo.",
-      "Tu risa arregla días completos.",
-      "Cuidas de todos. Hoy te toca a ti.",
-      "No te rindes, y eso a otros les da ejemplo.",
-      "Tu ternura no te quita nada de carácter.",
-      "Vales más de lo que te dices frente al espejo.",
-      "Sabes escuchar, y hoy eso es un lujo.",
-      "Tu presencia se nota cuando faltas."
+      "Eres tan fuerte que si la vida te tira limones, tú no haces limonada… ¡tú los exprimes en los ojos de tus problemas! 🍋",
+      "Tienes una fuerza tan bonita que iluminas el camino de todos los que tenemos la suerte de caminar a tu lado. ✨",
+      "Eres de esas mujeres que no esperan a que pase la tormenta, tú sales a bailar bajo la lluvia y nos invitas a todos.",
+      "Admiro tu capacidad para caerte, limpiarte las rodillas, acomodarte la corona y seguir adelante con esa sonrisa. 👑",
+      "Me encanta que no necesitas que nadie te rescate; tú sola te salvaste de la torre, domaste al dragón y te compraste el castillo."
     ];
     const STAGES = [
       [0.00, "Sembrando la semilla…"],
@@ -1100,11 +1094,13 @@
     let noteTimer = 0;
     function showNote(text, x, y) {
       noteEl.textContent = text;
-      noteEl.style.left = clamp(x, 100, W - 100) + "px";
-      noteEl.style.top = clamp(y, 90, H - 40) + "px";
+      const half = noteEl.offsetWidth / 2;
+      const high = noteEl.offsetHeight + 24;
+      noteEl.style.left = clamp(x, half + 10, W - half - 10) + "px";
+      noteEl.style.top = clamp(y, high, H - 30) + "px";
       noteEl.classList.add("show");
       clearTimeout(noteTimer);
-      noteTimer = setTimeout(() => noteEl.classList.remove("show"), 3600);
+      noteTimer = setTimeout(() => noteEl.classList.remove("show"), 5200);
     }
 
     canvas.addEventListener("pointerdown", (e) => {
