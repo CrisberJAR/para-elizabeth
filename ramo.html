@@ -1,0 +1,1110 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Un ramo de gracias 🌼</title>
+  <meta name="description" content="Día de las Flores Amarillas: un ramo que crece de la semilla a la flor, para las personas que iluminan mi vida." />
+  <meta name="theme-color" content="#f6b93b" />
+  <meta property="og:title" content="Un ramo de gracias 🌼" />
+  <meta property="og:description" content="Siembra el ramo y mira cómo crece. Es para ti." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌼</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #402f16;
+      --soft: #6d5836;
+      --gold: #c98a12;
+      --paper: #fffaf0;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: "Nunito", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      color: var(--ink);
+      background: #f7e7bf;
+      overflow-x: hidden;
+    }
+    canvas#scene {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      touch-action: manipulation;
+    }
+
+    .ui { position: relative; z-index: 2; pointer-events: none; }
+    .screen {
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: max(26px, env(safe-area-inset-top)) 20px 30px;
+      pointer-events: none;
+    }
+    .screen > * { pointer-events: auto; }
+
+    .eyebrow {
+      margin: 0;
+      letter-spacing: .3em;
+      text-transform: uppercase;
+      font-size: .66rem;
+      font-weight: 800;
+      color: rgba(255, 246, 214, .85);
+      text-shadow: 0 2px 10px rgba(60, 30, 0, .45);
+    }
+    h1 {
+      font-family: "Cormorant Garamond", serif;
+      font-weight: 600;
+      font-size: clamp(2.2rem, 8vw, 3.4rem);
+      line-height: 1.04;
+      margin: 10px 0 0;
+      text-align: center;
+      color: #fff8e2;
+      text-shadow: 0 6px 26px rgba(50, 26, 0, .5);
+      max-width: 15ch;
+    }
+    .sub {
+      margin: 12px 0 0;
+      max-width: 27ch;
+      text-align: center;
+      font-family: "Cormorant Garamond", serif;
+      font-style: italic;
+      font-size: 1.22rem;
+      line-height: 1.4;
+      color: rgba(255, 246, 219, .94);
+      text-shadow: 0 3px 16px rgba(50, 26, 0, .5);
+    }
+    .intro { display: flex; flex-direction: column; align-items: center; transition: opacity .6s ease; }
+    body.growing .intro, body.grown .intro { opacity: 0; pointer-events: none; }
+
+    .btn {
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+      border: 0;
+      border-radius: 999px;
+      padding: 15px 30px;
+      margin-top: 22px;
+      color: #4a3005;
+      background: linear-gradient(180deg, #ffe797, #f4b52c);
+      box-shadow: 0 14px 34px rgba(120, 70, 0, .3), inset 0 1px 0 rgba(255, 255, 255, .7);
+      transition: transform .16s ease, box-shadow .16s ease;
+    }
+    .btn:hover { transform: translateY(-2px); }
+    .btn:active { transform: translateY(1px) scale(.99); }
+    .btn:focus-visible, .chip:focus-visible { outline: 3px solid #fff4c9; outline-offset: 3px; }
+
+    .status {
+      position: fixed;
+      left: 50%;
+      top: max(22px, env(safe-area-inset-top));
+      transform: translateX(-50%);
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 16px 9px 12px;
+      border-radius: 999px;
+      background: rgba(58, 34, 6, .42);
+      backdrop-filter: blur(8px);
+      color: #fff6dc;
+      font-size: .86rem;
+      font-weight: 700;
+      letter-spacing: .02em;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .45s ease;
+      white-space: nowrap;
+    }
+    body.growing .status { opacity: 1; }
+    .ring { width: 22px; height: 22px; transform: rotate(-90deg); }
+    .ring circle { fill: none; stroke-width: 3.4; stroke-linecap: round; }
+    .ring .track { stroke: rgba(255, 246, 220, .28); }
+    .ring .bar { stroke: #ffd968; stroke-dasharray: 56.5; stroke-dashoffset: 56.5; }
+
+    .hint {
+      margin-top: auto;
+      margin-bottom: 34px;
+      font-size: .88rem;
+      font-weight: 700;
+      color: #fff6dc;
+      padding: 9px 16px;
+      border-radius: 999px;
+      background: rgba(58, 34, 6, .46);
+      backdrop-filter: blur(6px);
+      opacity: 0;
+      transition: opacity .5s ease;
+      text-align: center;
+    }
+    body.growing .hint, body.grown .hint { opacity: 1; }
+    body.grown .hint { animation: bob 2.6s ease-in-out infinite; }
+    @keyframes bob {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(5px); }
+    }
+
+    .note {
+      position: fixed;
+      z-index: 6;
+      max-width: 15rem;
+      padding: 11px 15px;
+      border-radius: 16px 16px 16px 5px;
+      background: rgba(255, 252, 244, .97);
+      color: #4d3a16;
+      font-family: "Cormorant Garamond", serif;
+      font-size: 1.14rem;
+      line-height: 1.32;
+      box-shadow: 0 14px 34px rgba(70, 40, 0, .26);
+      transform: translate(-50%, -112%) scale(.9);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .26s ease, transform .26s cubic-bezier(.2, 1.3, .4, 1);
+    }
+    .note.show { opacity: 1; transform: translate(-50%, -112%) scale(1); }
+
+    .letter-screen {
+      min-height: 100svh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8vh 18px 12vh;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity .9s ease;
+    }
+    body.grown .letter-screen { opacity: 1; visibility: visible; }
+
+    .letter {
+      pointer-events: auto;
+      width: min(620px, 100%);
+      background: linear-gradient(180deg, rgba(255, 253, 247, .97), rgba(255, 247, 226, .97));
+      border-radius: 26px;
+      padding: 36px 30px 30px;
+      box-shadow:
+        inset 0 0 0 1px rgba(201, 138, 18, .38),
+        inset 0 0 0 7px rgba(255, 252, 243, .75),
+        inset 0 0 0 8px rgba(201, 138, 18, .22),
+        0 30px 70px rgba(80, 45, 5, .22);
+    }
+    .letter .top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      letter-spacing: .24em;
+      text-transform: uppercase;
+      font-size: .64rem;
+      font-weight: 800;
+      color: #a9822c;
+      margin: 0 0 14px;
+    }
+    .letter .top::after { content: ""; flex: 1; height: 1px; background: rgba(169, 130, 44, .35); }
+    .letter p {
+      font-family: "Cormorant Garamond", serif;
+      font-size: 1.26rem;
+      line-height: 1.6;
+      margin: 0 0 15px;
+      color: #4b3818;
+    }
+    .letter p.big { font-size: 1.5rem; color: #8a6412; margin-bottom: 10px; }
+    .letter .sign {
+      margin: 18px 0 0;
+      font-weight: 800;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      font-size: .78rem;
+      color: #8a6412;
+      font-family: "Nunito", sans-serif;
+    }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+    .chip {
+      font: inherit;
+      font-weight: 700;
+      font-size: .92rem;
+      cursor: pointer;
+      border: 1.4px solid rgba(169, 130, 44, .4);
+      background: rgba(255, 252, 240, .9);
+      color: #79561a;
+      border-radius: 999px;
+      padding: 11px 17px;
+      transition: transform .14s ease, background .2s ease;
+    }
+    .chip:hover { transform: translateY(-1px); background: #fff8e2; }
+    .chip.primary { background: linear-gradient(180deg, #ffe797, #f4b52c); border-color: transparent; color: #4a3005; }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 26px;
+      transform: translate(-50%, 12px);
+      z-index: 9;
+      padding: 12px 18px;
+      border-radius: 999px;
+      background: rgba(58, 34, 6, .92);
+      color: #fff7e0;
+      font-weight: 700;
+      font-size: .9rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: .35s ease;
+    }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+    @media (max-width: 420px) {
+      .letter { padding: 28px 22px 24px; border-radius: 22px; }
+      .letter p { font-size: 1.18rem; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="scene" aria-label="Animación de un ramo de flores amarillas que crece" role="img"></canvas>
+
+  <div class="status" id="status" role="status">
+    <svg class="ring" viewBox="0 0 22 22" aria-hidden="true">
+      <circle class="track" cx="11" cy="11" r="9"></circle>
+      <circle class="bar" id="bar" cx="11" cy="11" r="9"></circle>
+    </svg>
+    <span id="stage-label">Sembrando…</span>
+  </div>
+
+  <div class="ui">
+    <section class="screen">
+      <div class="intro">
+        <p class="eyebrow">21 de septiembre · Flores amarillas</p>
+        <h1>Un ramo de gracias</h1>
+        <p class="sub">Las flores amarillas no son solo de amor. También son de alegría, de gratitud y de la gente que ilumina. Este ramo es para ti.</p>
+        <button class="btn" id="plant" type="button">Sembrar el ramo</button>
+      </div>
+      <p class="hint" id="hint">Toca la pantalla para regar 💧</p>
+    </section>
+
+    <section class="letter-screen" id="letterScreen">
+      <article class="letter">
+        <p class="top">Para las personas que iluminan</p>
+        <p class="big">Gracias por estar.</p>
+        <p>Hoy, en el Día de las Flores Amarillas, quise sembrar algo que no se marchite y regalárselo a quienes hacen que mis días sean más livianos: mi mamá, mis hermanas, mis amigas.</p>
+        <p>Gracias por las risas que no se planean, por los audios larguísimos, por los consejos que sí sirvieron y por aparecer también en los días grises.</p>
+        <p>Cada flor de este ramo tiene un gracias distinto. Ábrelas tocándolas: ahí les dejé lo que a veces no digo en voz alta.</p>
+        <p>Ojalá este año les traiga tanto amarillo como el que ustedes me regalan.</p>
+        <p class="sign">Con cariño, Crisber</p>
+        <div class="actions">
+          <button class="chip primary" id="share" type="button">Compartir el ramo</button>
+          <button class="chip" id="copy" type="button">Copiar el mensaje</button>
+          <button class="chip" id="save" type="button">Guardar imagen</button>
+          <button class="chip" id="again" type="button">Sembrar otra vez</button>
+        </div>
+      </article>
+    </section>
+  </div>
+
+  <div class="note" id="note" aria-live="polite"></div>
+  <div class="toast" id="toast" role="status"></div>
+
+  <script>
+  "use strict";
+  (function () {
+    const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const canvas = document.getElementById("scene");
+    const ctx = canvas.getContext("2d", { alpha: false });
+    const plantBtn = document.getElementById("plant");
+    const againBtn = document.getElementById("again");
+    const bar = document.getElementById("bar");
+    const stageLabel = document.getElementById("stage-label");
+    const hint = document.getElementById("hint");
+    const noteEl = document.getElementById("note");
+    const toastEl = document.getElementById("toast");
+    const letterScreen = document.getElementById("letterScreen");
+
+    const GRATITUDE = [
+      "Gracias por escucharme sin apurarme.",
+      "Gracias por las risas que no se planean.",
+      "Gracias por los consejos que sí funcionaron.",
+      "Gracias por aparecer en los días grises.",
+      "Gracias por celebrar mis logros como tuyos.",
+      "Gracias por los audios de cinco minutos.",
+      "Gracias por tu paciencia infinita.",
+      "Gracias por ser familia, de sangre o elegida.",
+      "Gracias por hacer que todo pese menos.",
+      "Gracias por seguir aquí después de tanto.",
+      "Gracias por decirme la verdad con cariño.",
+      "Gracias por cuidarme incluso de mí."
+    ];
+    const STAGES = [
+      [0.00, "Sembrando la semilla…"],
+      [0.10, "Echando raíces…"],
+      [0.24, "Brotando del suelo…"],
+      [0.46, "Creciendo hacia el sol…"],
+      [0.66, "Desplegando hojas…"],
+      [0.80, "Abriendo pétalos…"],
+      [0.97, "El ramo está listo 🌼"]
+    ];
+
+    // ---------- helpers ----------
+    const TAU = Math.PI * 2;
+    const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+    const lerp = (a, b, t) => a + (b - a) * t;
+    const easeOut = (t) => 1 - Math.pow(1 - t, 3);
+    const easeInOut = (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    const smooth = (a, b, v) => easeInOut(clamp((v - a) / (b - a), 0, 1));
+
+    function mulberry32(seed) {
+      return function () {
+        seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+        let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+        t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+      };
+    }
+
+    // quadratic bezier point + tangent, with partial-length support
+    function quad(p0, p1, p2, t) {
+      const mt = 1 - t;
+      return {
+        x: mt * mt * p0.x + 2 * mt * t * p1.x + t * t * p2.x,
+        y: mt * mt * p0.y + 2 * mt * t * p1.y + t * t * p2.y,
+        dx: 2 * mt * (p1.x - p0.x) + 2 * t * (p2.x - p1.x),
+        dy: 2 * mt * (p1.y - p0.y) + 2 * t * (p2.y - p1.y)
+      };
+    }
+    // de Casteljau split: control points of sub-curve [0, t]
+    function quadSplit(p0, p1, p2, t) {
+      const a = { x: lerp(p0.x, p1.x, t), y: lerp(p0.y, p1.y, t) };
+      const b = { x: lerp(p1.x, p2.x, t), y: lerp(p1.y, p2.y, t) };
+      return { p0: p0, p1: a, p2: { x: lerp(a.x, b.x, t), y: lerp(a.y, b.y, t) } };
+    }
+
+    // ---------- scene state ----------
+    let W = 0, H = 0, dpr = 1;
+    let flowers = [], fillers = [], petalsAir = [], sparks = [], drops = [], butterflies = [];
+    let grow = 0;            // 0..1 global growth
+    let boost = 0;           // watering boost
+    let phase = "idle";      // idle | growing | grown
+    let startedAt = 0;
+    let bloomedOnce = false;
+    let rand = mulberry32(20260921);
+
+    const GROW_MS = reduceMotion ? 0 : 8200;
+
+    function build() {
+      rand = mulberry32(20260921);
+      flowers = [];
+      fillers = [];
+      petalsAir = [];
+      sparks = [];
+      drops = [];
+
+      const baseY = H * 0.99;
+      const cx = W * 0.5;
+      const reach = Math.min(H * 0.6, W * 1.15, 560);
+      const count = W < 480 ? 11 : 15;
+
+      for (let i = 0; i < count; i++) {
+        const slot = count === 1 ? 0.5 : i / (count - 1);
+        const spread = (slot - 0.5) * 2;                       // -1..1
+        const depth = 0.25 + rand() * 0.75;                    // 0 back .. 1 front
+        const arc = 1 - Math.abs(spread) * 0.42;               // center taller
+        flowers.push({
+          bx: cx + spread * reach * 0.07,
+          by: baseY,
+          angle: spread * (0.5 + rand() * 0.18) + (rand() - 0.5) * 0.08,
+          len: reach * (0.6 + arc * 0.4) * lerp(0.84, 1.04, depth),
+          depth: depth,
+          scale: lerp(0.72, 1.1, depth),
+          delay: 0.04 + rand() * 0.3,
+          petals: 11 + Math.floor(rand() * 5),
+          rot: rand() * TAU,
+          hue: 40 + rand() * 12,
+          light: 0.86 + rand() * 0.14,
+          sway: 0.5 + rand() * 0.9,
+          phase: rand() * TAU,
+          leaves: rand() < 0.75
+            ? [{ at: 0.4 + rand() * 0.16, side: rand() < 0.5 ? -1 : 1, size: 0.75 + rand() * 0.35 }]
+            : [],
+          note: GRATITUDE[i % GRATITUDE.length],
+          pop: 0,
+          hx: 0, hy: 0, hr: 0
+        });
+      }
+      flowers.sort((a, b) => a.depth - b.depth);
+
+      const fillerCount = W < 480 ? 14 : 20;
+      for (let i = 0; i < fillerCount; i++) {
+        const spread = (rand() - 0.5) * 2;
+        fillers.push({
+          bx: cx + spread * reach * 0.06,
+          by: baseY,
+          angle: spread * 0.92,
+          len: reach * (0.42 + rand() * 0.46),
+          delay: rand() * 0.34,
+          phase: rand() * TAU,
+          sway: 0.7 + rand() * 1.1,
+          r: 2.2 + rand() * 2.6,
+          tone: rand() < 0.45 ? "#fff6dc" : "#ffe9a8"
+        });
+      }
+
+      butterflies = [];
+      const bn = reduceMotion ? 0 : (W < 480 ? 2 : 3);
+      for (let i = 0; i < bn; i++) {
+        butterflies.push({
+          t: rand(),
+          speed: 0.00005 + rand() * 0.00005,
+          y: H * (0.2 + rand() * 0.34),
+          amp: 40 + rand() * 60,
+          phase: rand() * TAU,
+          size: 7 + rand() * 5,
+          dir: rand() < 0.5 ? 1 : -1
+        });
+      }
+    }
+
+    function resize() {
+      W = innerWidth;
+      H = innerHeight;
+      dpr = Math.min(devicePixelRatio || 1, 2);
+      canvas.width = Math.round(W * dpr);
+      canvas.height = Math.round(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      build();
+    }
+
+    // ---------- drawing ----------
+    function sunPos() {
+      const day = smooth(0.05, 0.9, grow);
+      return { x: W * lerp(0.12, 0.8, day), y: H * lerp(0.88, 0.18, easeOut(day)), day: day };
+    }
+
+    function drawSky(t) {
+      const day = smooth(0.05, 0.9, grow);
+      const g = ctx.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, mix("#2a1b0d", "#8fc0e8", day * 0.82));
+      g.addColorStop(0.42, mix("#5c3a17", "#ffe8a8", day));
+      g.addColorStop(1, mix("#2f2009", "#fff6d8", day));
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, W, H);
+
+      // sun rises with growth
+      const sun = sunPos();
+      const sx = sun.x;
+      const sy = sun.y;
+      const sr = lerp(26, 54, day);
+      const glow = ctx.createRadialGradient(sx, sy, 0, sx, sy, sr * 7);
+      glow.addColorStop(0, `rgba(255,236,165,${0.5 + day * 0.4})`);
+      glow.addColorStop(0.25, `rgba(255,205,90,${0.18 + day * 0.14})`);
+      glow.addColorStop(1, "rgba(255,190,60,0)");
+      ctx.fillStyle = glow;
+      ctx.fillRect(0, 0, W, H);
+      ctx.beginPath();
+      ctx.arc(sx, sy, sr, 0, TAU);
+      ctx.fillStyle = `rgba(255,248,214,${0.55 + day * 0.4})`;
+      ctx.fill();
+
+      // distant hills
+      ctx.fillStyle = mix("#22190c", "#cfd98d", day * 0.85);
+      hill(H * 0.80, 30, 0.9);
+      ctx.fillStyle = mix("#1a1408", "#a8bd6b", day * 0.8);
+      hill(H * 0.86, 22, 1.7);
+    }
+
+    function hill(baseline, amp, freq) {
+      ctx.beginPath();
+      ctx.moveTo(0, H);
+      for (let x = 0; x <= W; x += 14) {
+        const y = baseline + Math.sin((x / W) * TAU * freq + freq) * amp;
+        ctx.lineTo(x, y);
+      }
+      ctx.lineTo(W, H);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    function drawGround() {
+      const day = smooth(0.05, 0.9, grow);
+      const gy = H * 0.9;
+      const g = ctx.createLinearGradient(0, gy, 0, H);
+      g.addColorStop(0, mix("#2d2211", "#8a6a2f", day * 0.7));
+      g.addColorStop(1, mix("#1b1409", "#4a3416", day * 0.6));
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.moveTo(0, H);
+      for (let x = 0; x <= W; x += 16) {
+        ctx.lineTo(x, gy + Math.sin(x * 0.012) * 5);
+      }
+      ctx.lineTo(W, H);
+      ctx.closePath();
+      ctx.fill();
+
+      // grass tufts
+      ctx.strokeStyle = mix("#22300f", "#5f8437", day);
+      ctx.lineWidth = 1.6;
+      const r = mulberry32(7);
+      for (let i = 0; i < W / 9; i++) {
+        const x = r() * W;
+        const y = gy + 4 + r() * (H - gy - 4);
+        const h = 6 + r() * 14;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.quadraticCurveTo(x + (r() - 0.5) * 10, y - h * 0.6, x + (r() - 0.5) * 16, y - h);
+        ctx.stroke();
+      }
+    }
+
+    function stemPath(f, t, time) {
+      const swayAmp = (reduceMotion ? 0 : 1) * (5 + f.len * 0.03) * f.sway;
+      const s = Math.sin(time * 0.00072 * (0.7 + f.sway * 0.4) + f.phase) * swayAmp;
+      const p0 = { x: f.bx, y: f.by };
+      const margin = Math.min(W * 0.13, 74);
+      const sun = sunPos();
+      const raw = f.bx + Math.sin(f.angle) * f.len * 0.52 + s;
+      // las flores se inclinan un poco hacia el sol, como los girasoles
+      const tipX = clamp(raw + (sun.x - raw) * 0.05 * sun.day, margin, W - margin);
+      const tipY = f.by - Math.cos(f.angle) * f.len;
+      const p2 = { x: tipX, y: tipY };
+      const p1 = {
+        x: f.bx + (tipX - f.bx) * 0.18,
+        y: f.by - Math.cos(f.angle) * f.len * 0.62
+      };
+      const sub = quadSplit(p0, p1, p2, clamp(t, 0.001, 1));
+      return sub;
+    }
+
+    function drawFlower(f, time) {
+      const local = clamp((grow - f.delay) / 0.56, 0, 1);
+      if (local <= 0) return;
+      const stemT = easeOut(clamp(local / 0.72, 0, 1));
+      const bloom = easeOut(clamp((local - 0.6) / 0.4, 0, 1));
+      const sub = stemPath(f, stemT, time);
+      const day = smooth(0.05, 0.9, grow);
+      const shade = lerp(0.55, 1, f.depth);
+
+      // stem
+      ctx.lineCap = "round";
+      ctx.strokeStyle = mix(mix("#1d2c10", "#3f7a36", day), "#75a94b", shade * 0.5);
+      ctx.lineWidth = lerp(2.6, 6.4, f.depth) * (0.6 + stemT * 0.4);
+      ctx.beginPath();
+      ctx.moveTo(sub.p0.x, sub.p0.y);
+      ctx.quadraticCurveTo(sub.p1.x, sub.p1.y, sub.p2.x, sub.p2.y);
+      ctx.stroke();
+
+      // leaves
+      for (const lf of f.leaves) {
+        const lt = clamp((local - lf.at * 0.5) / 0.3, 0, 1);
+        if (lt <= 0 || stemT < lf.at) continue;
+        const pt = quad(sub.p0, sub.p1, sub.p2, clamp(lf.at / Math.max(stemT, 0.001), 0, 1));
+        const ang = Math.atan2(pt.dy, pt.dx);
+        drawLeaf(pt.x, pt.y, ang + lf.side * 1.05, f.len * 0.115 * lf.size * easeOut(lt) * f.scale, day, shade);
+      }
+
+      // head
+      const head = { x: sub.p2.x, y: sub.p2.y };
+      const headMax = Math.min(W * 0.075, 46);
+      const R = Math.min(f.len * 0.072 * f.scale, headMax) * (0.4 + bloom * 0.6) * (1 + f.pop * 0.12);
+      f.hx = head.x; f.hy = head.y; f.hr = Math.max(R * 2.1, 26);
+
+      if (bloom > 0.02) {
+        const petalLen = R * 2.05;
+        const petalWid = R * 0.9;
+        const openRot = f.rot + (1 - bloom) * 0.5;
+        // back petals
+        ctx.save();
+        ctx.translate(head.x, head.y);
+        ctx.rotate(openRot + Math.PI / f.petals);
+        for (let i = 0; i < f.petals; i++) {
+          const a = (i / f.petals) * TAU;
+          const stagger = easeOut(clamp(bloom * 1.25 - (i % 4) * 0.06, 0, 1));
+          ctx.save();
+          ctx.rotate(a);
+          ctx.scale(stagger, stagger);
+          petalShape(ctx, petalLen * 1.04, petalWid * 0.85);
+          ctx.fillStyle = `hsl(${f.hue - 3} 90% ${lerp(54, 61, f.depth)}%)`;
+          ctx.fill();
+          ctx.restore();
+        }
+        ctx.restore();
+
+        // front petals
+        ctx.save();
+        ctx.translate(head.x, head.y);
+        ctx.rotate(openRot);
+        for (let i = 0; i < f.petals; i++) {
+          const a = (i / f.petals) * TAU;
+          const stagger = easeOut(clamp(bloom * 1.3 - (i % 5) * 0.05, 0, 1));
+          const flutter = reduceMotion ? 0 : Math.sin(time * 0.0013 + i + f.phase) * 0.028;
+          ctx.save();
+          ctx.rotate(a + flutter);
+          ctx.scale(stagger, stagger);
+          petalShape(ctx, petalLen, petalWid);
+          const g = ctx.createLinearGradient(0, 0, 0, -petalLen);
+          g.addColorStop(0, `hsl(${f.hue + 4} 92% ${lerp(52, 62, f.depth)}%)`);
+          g.addColorStop(0.55, `hsl(${f.hue + 8} 96% ${lerp(62, 72, f.depth)}%)`);
+          g.addColorStop(1, `hsl(${f.hue + 14} 100% ${lerp(78, 88, f.depth)}%)`);
+          ctx.fillStyle = g;
+          ctx.fill();
+          ctx.restore();
+        }
+        ctx.restore();
+
+        // disc
+        const dr = R * (0.52 + bloom * 0.12);
+        const dg = ctx.createRadialGradient(head.x - dr * 0.3, head.y - dr * 0.35, dr * 0.1, head.x, head.y, dr);
+        dg.addColorStop(0, "#e8ae3d");
+        dg.addColorStop(0.6, "#a9661a");
+        dg.addColorStop(1, "#5e3608");
+        ctx.beginPath();
+        ctx.arc(head.x, head.y, dr, 0, TAU);
+        ctx.fillStyle = dg;
+        ctx.fill();
+
+        // seed spiral
+        ctx.fillStyle = "rgba(60,32,4,.55)";
+        const seeds = Math.floor(dr * 1.7);
+        for (let i = 0; i < seeds; i++) {
+          const k = i / seeds;
+          const a = i * 2.39996;
+          const rr = dr * 0.86 * Math.sqrt(k);
+          ctx.beginPath();
+          ctx.arc(head.x + Math.cos(a) * rr, head.y + Math.sin(a) * rr, Math.max(0.6, dr * 0.055), 0, TAU);
+          ctx.fill();
+        }
+      } else {
+        // bud
+        ctx.beginPath();
+        ctx.ellipse(head.x, head.y, R * 0.6, R * 0.8, 0, 0, TAU);
+        ctx.fillStyle = mix("#4c7a32", "#d8b23a", bloom * 4);
+        ctx.fill();
+      }
+      if (f.pop > 0) f.pop = Math.max(0, f.pop - 0.04);
+    }
+
+    function petalShape(c, len, wid) {
+      c.beginPath();
+      c.moveTo(0, 0);
+      c.bezierCurveTo(wid * 0.72, -len * 0.22, wid * 0.52, -len * 0.82, 0, -len);
+      c.bezierCurveTo(-wid * 0.52, -len * 0.82, -wid * 0.72, -len * 0.22, 0, 0);
+      c.closePath();
+    }
+
+    function drawLeaf(x, y, ang, size, day, shade) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(ang);
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.bezierCurveTo(size * 0.45, -size * 0.42, size * 0.9, -size * 0.2, size, 0);
+      ctx.bezierCurveTo(size * 0.9, size * 0.2, size * 0.45, size * 0.42, 0, 0);
+      ctx.closePath();
+      const g = ctx.createLinearGradient(0, -size * 0.3, size, size * 0.3);
+      g.addColorStop(0, mix("#26401a", "#69a244", day));
+      g.addColorStop(1, mix("#16280f", "#3f7430", day));
+      ctx.fillStyle = g;
+      ctx.fill();
+      ctx.strokeStyle = "rgba(255,255,255,.14)";
+      ctx.lineWidth = Math.max(0.7, size * 0.03);
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(size * 0.95, 0);
+      ctx.stroke();
+      ctx.restore();
+      void shade;
+    }
+
+    function drawFiller(f, time) {
+      const local = clamp((grow - f.delay) / 0.5, 0, 1);
+      if (local <= 0) return;
+      const t = easeOut(local);
+      const sub = stemPath(f, t, time);
+      ctx.strokeStyle = "rgba(120,160,95,.75)";
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.moveTo(sub.p0.x, sub.p0.y);
+      ctx.quadraticCurveTo(sub.p1.x, sub.p1.y, sub.p2.x, sub.p2.y);
+      ctx.stroke();
+      const bloom = clamp((local - 0.55) / 0.45, 0, 1);
+      if (bloom <= 0) return;
+      ctx.fillStyle = f.tone;
+      for (let i = 0; i < 5; i++) {
+        const a = (i / 5) * TAU + time * 0.0002;
+        const rr = f.r * 1.4 * bloom;
+        ctx.beginPath();
+        ctx.arc(sub.p2.x + Math.cos(a) * rr, sub.p2.y + Math.sin(a) * rr, f.r * 0.62 * bloom, 0, TAU);
+        ctx.fill();
+      }
+    }
+
+    function drawWrap() {
+      const t = smooth(0.45, 0.85, grow);
+      if (t <= 0) return;
+      const cx = W * 0.5;
+      const baseY = H * 0.995;
+      const topY = baseY - Math.min(H * 0.17, 132) * t;
+      const halfTop = Math.min(W * 0.25, 158) * t;
+      const halfBottom = Math.min(W * 0.085, 46) * t;
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(cx - halfTop, topY);
+      ctx.lineTo(cx - halfBottom, baseY);
+      ctx.lineTo(cx + halfBottom, baseY);
+      ctx.lineTo(cx + halfTop, topY);
+      ctx.closePath();
+      const g = ctx.createLinearGradient(cx - halfTop, topY, cx + halfTop, baseY);
+      g.addColorStop(0, "#e2c294");
+      g.addColorStop(0.42, "#f8e7c6");
+      g.addColorStop(1, "#cfab77");
+      ctx.fillStyle = g;
+      ctx.fill();
+
+      // folds
+      ctx.strokeStyle = "rgba(160,116,52,.28)";
+      ctx.lineWidth = 1.2;
+      for (let i = -2; i <= 2; i++) {
+        ctx.beginPath();
+        ctx.moveTo(cx + i * halfTop * 0.36, topY + 4);
+        ctx.lineTo(cx + i * halfBottom * 0.5, baseY);
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // ribbon
+      const ry = lerp(baseY, topY, 0.52);
+      const rw = lerp(halfBottom, halfTop, 0.48);
+      ctx.save();
+      ctx.fillStyle = "#d8912c";
+      ctx.strokeStyle = "#b9761e";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect ? ctx.roundRect(cx - rw - 4, ry - 9, (rw + 4) * 2, 18, 6) : ctx.rect(cx - rw - 4, ry - 9, (rw + 4) * 2, 18);
+      ctx.fill();
+
+      const bowT = smooth(0.7, 0.95, grow);
+      if (bowT > 0) {
+        const bw = 26 * bowT, bh = 17 * bowT;
+        ctx.fillStyle = "#e9a637";
+        for (const s of [-1, 1]) {
+          ctx.beginPath();
+          ctx.moveTo(cx, ry);
+          ctx.bezierCurveTo(cx + s * bw, ry - bh, cx + s * bw * 1.35, ry + bh * 0.9, cx, ry + 2);
+          ctx.closePath();
+          ctx.fill();
+          // tails
+          ctx.beginPath();
+          ctx.moveTo(cx, ry + 2);
+          ctx.bezierCurveTo(cx + s * bw * 0.5, ry + bh, cx + s * bw * 0.7, ry + bh * 2.1, cx + s * bw * 0.35, ry + bh * 2.6);
+          ctx.lineTo(cx + s * 2, ry + 3);
+          ctx.closePath();
+          ctx.fill();
+        }
+        ctx.beginPath();
+        ctx.arc(cx, ry + 1, 5 * bowT, 0, TAU);
+        ctx.fillStyle = "#c9871f";
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    function drawParticles(dt, time) {
+      // floating petals after bloom
+      if (phase === "grown" && !reduceMotion && petalsAir.length < (W < 480 ? 16 : 26) && Math.random() < 0.35) {
+        petalsAir.push({
+          x: Math.random() * W, y: -20,
+          vx: (Math.random() - 0.5) * 0.5, vy: 0.35 + Math.random() * 0.7,
+          r: 4 + Math.random() * 6, rot: Math.random() * TAU, vr: (Math.random() - 0.5) * 0.02,
+          hue: 42 + Math.random() * 12, a: 0.5 + Math.random() * 0.5
+        });
+      }
+      for (let i = petalsAir.length - 1; i >= 0; i--) {
+        const p = petalsAir[i];
+        p.x += p.vx + Math.sin(time * 0.001 + p.rot) * 0.35;
+        p.y += p.vy;
+        p.rot += p.vr;
+        if (p.y > H + 30) { petalsAir.splice(i, 1); continue; }
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rot);
+        ctx.globalAlpha = p.a;
+        ctx.fillStyle = `hsl(${p.hue} 95% 70%)`;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, p.r * 0.55, p.r, 0, 0, TAU);
+        ctx.fill();
+        ctx.restore();
+      }
+      ctx.globalAlpha = 1;
+
+      // water drops
+      for (let i = drops.length - 1; i >= 0; i--) {
+        const d = drops[i];
+        d.vy += 0.5;
+        d.x += d.vx;
+        d.y += d.vy;
+        d.life -= dt;
+        if (d.life <= 0 || d.y > H) { drops.splice(i, 1); continue; }
+        ctx.beginPath();
+        ctx.ellipse(d.x, d.y, 1.8, 3.6, 0, 0, TAU);
+        ctx.fillStyle = "rgba(160,215,255,.85)";
+        ctx.fill();
+      }
+
+      // sparks (pollen)
+      for (let i = sparks.length - 1; i >= 0; i--) {
+        const s = sparks[i];
+        s.x += s.vx; s.y += s.vy; s.vy += 0.02; s.life -= dt;
+        if (s.life <= 0) { sparks.splice(i, 1); continue; }
+        ctx.globalAlpha = clamp(s.life / s.max, 0, 1);
+        ctx.fillStyle = s.color;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, TAU);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    function drawButterflies(time) {
+      for (const b of butterflies) {
+        b.t += b.speed * 16;
+        if (b.t > 1.15) b.t = -0.15;
+        const x = b.dir > 0 ? b.t * (W + 80) - 40 : W + 40 - b.t * (W + 80);
+        const y = b.y + Math.sin(time * 0.0016 + b.phase) * b.amp * 0.4;
+        const flap = Math.abs(Math.sin(time * 0.02 + b.phase));
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(Math.sin(time * 0.0016 + b.phase) * 0.25);
+        ctx.fillStyle = "rgba(255,228,140,.95)";
+        for (const s of [-1, 1]) {
+          ctx.save();
+          ctx.scale(s * lerp(0.35, 1, flap), 1);
+          ctx.beginPath();
+          ctx.ellipse(b.size * 0.6, -b.size * 0.15, b.size * 0.62, b.size * 0.42, -0.3, 0, TAU);
+          ctx.fill();
+          ctx.restore();
+        }
+        ctx.fillStyle = "rgba(90,60,20,.9)";
+        ctx.beginPath();
+        ctx.ellipse(0, 0, b.size * 0.12, b.size * 0.34, 0, 0, TAU);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    function mix(c1, c2, t) {
+      t = clamp(t, 0, 1);
+      const a = hex(c1), b = hex(c2);
+      return `rgb(${Math.round(lerp(a[0], b[0], t))},${Math.round(lerp(a[1], b[1], t))},${Math.round(lerp(a[2], b[2], t))})`;
+    }
+    const hexCache = {};
+    function hex(h) {
+      if (hexCache[h]) return hexCache[h];
+      const n = parseInt(h.slice(1), 16);
+      const v = [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+      hexCache[h] = v;
+      return v;
+    }
+
+    // ---------- loop ----------
+    let last = performance.now();
+    function frame(now) {
+      const dt = Math.min(48, now - last);
+      last = now;
+
+      if (phase === "growing") {
+        const elapsed = now - startedAt + boost;
+        grow = GROW_MS ? clamp(elapsed / GROW_MS, 0, 1) : 1;
+        setStage(grow);
+        bar.style.strokeDashoffset = String(56.5 * (1 - grow));
+        if (grow >= 1) finish();
+      }
+
+      drawSky(now);
+      drawGround();
+      for (const f of fillers) drawFiller(f, now);
+      for (const f of flowers) drawFlower(f, now);
+      drawWrap();
+      drawParticles(dt, now);
+      if (grow > 0.5) drawButterflies(now);
+
+      requestAnimationFrame(frame);
+    }
+
+    function setStage(g) {
+      let label = STAGES[0][1];
+      for (const [at, text] of STAGES) if (g >= at) label = text;
+      if (stageLabel.textContent !== label) stageLabel.textContent = label;
+    }
+
+    function finish() {
+      if (phase === "grown") return;
+      phase = "grown";
+      document.body.classList.remove("growing");
+      document.body.classList.add("grown");
+      hint.textContent = "Toca una flor 🌼 · desliza para leer la carta";
+      if (!bloomedOnce) {
+        bloomedOnce = true;
+        for (const f of flowers) {
+          f.pop = 1;
+          burst(f.hx, f.hy, 10, "rgba(255,226,140,.95)");
+        }
+      }
+    }
+
+    function burst(x, y, n, color) {
+      if (reduceMotion) return;
+      for (let i = 0; i < n; i++) {
+        const a = Math.random() * TAU;
+        const sp = 0.6 + Math.random() * 2.4;
+        sparks.push({
+          x: x, y: y,
+          vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 0.6,
+          r: 1 + Math.random() * 2.2,
+          life: 700 + Math.random() * 600, max: 1300,
+          color: color
+        });
+      }
+    }
+
+    function start() {
+      phase = "growing";
+      grow = 0;
+      boost = 0;
+      bloomedOnce = false;
+      startedAt = performance.now();
+      document.body.classList.remove("grown");
+      document.body.classList.add("growing");
+      hint.textContent = "Toca la pantalla para regar 💧";
+      build();
+      if (reduceMotion) { grow = 1; finish(); }
+    }
+
+    plantBtn.addEventListener("click", start);
+    againBtn.addEventListener("click", () => {
+      scrollTo({ top: 0, behavior: "smooth" });
+      setTimeout(start, 420);
+    });
+
+    // ---------- interaction on canvas ----------
+    let noteTimer = 0;
+    function showNote(text, x, y) {
+      noteEl.textContent = text;
+      noteEl.style.left = clamp(x, 100, W - 100) + "px";
+      noteEl.style.top = clamp(y, 90, H - 40) + "px";
+      noteEl.classList.add("show");
+      clearTimeout(noteTimer);
+      noteTimer = setTimeout(() => noteEl.classList.remove("show"), 3600);
+    }
+
+    canvas.addEventListener("pointerdown", (e) => {
+      const x = e.clientX, y = e.clientY;
+      if (phase === "idle") { start(); return; }
+
+      if (phase === "grown") {
+        let best = null, bestD = Infinity;
+        for (const f of flowers) {
+          const d = Math.hypot(f.hx - x, f.hy - y);
+          if (d < f.hr && d < bestD) { best = f; bestD = d; }
+        }
+        if (best) {
+          best.pop = 1;
+          burst(best.hx, best.hy, 16, "rgba(255,233,160,.95)");
+          showNote(best.note, best.hx, best.hy);
+          return;
+        }
+      }
+
+      // water: speeds growth and makes drops
+      boost += 320;
+      for (let i = 0; i < 12; i++) {
+        drops.push({
+          x: x + (Math.random() - 0.5) * 26,
+          y: y,
+          vx: (Math.random() - 0.5) * 1.2,
+          vy: 1 + Math.random() * 2,
+          life: 1400
+        });
+      }
+      burst(x, y, 6, "rgba(180,225,255,.9)");
+    });
+
+    // ---------- letter actions ----------
+    const LETTER_TEXT = [
+      "Gracias por estar.",
+      "",
+      "Hoy, en el Día de las Flores Amarillas, quise sembrar algo que no se marchite y regalárselo a quienes hacen que mis días sean más livianos.",
+      "",
+      "Gracias por las risas que no se planean, por los audios larguísimos, por los consejos que sí sirvieron y por aparecer también en los días grises.",
+      "",
+      "Con cariño, Crisber 🌼"
+    ].join("\n");
+
+    function toast(msg) {
+      toastEl.textContent = msg;
+      toastEl.classList.add("show");
+      setTimeout(() => toastEl.classList.remove("show"), 2200);
+    }
+
+    document.getElementById("copy").addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(LETTER_TEXT);
+        toast("Mensaje copiado ✓");
+      } catch (_) {
+        toast("No se pudo copiar");
+      }
+    });
+
+    document.getElementById("share").addEventListener("click", async () => {
+      const data = { title: "Un ramo de gracias 🌼", text: "Te sembré un ramo por el Día de las Flores Amarillas:", url: location.href };
+      if (navigator.share) {
+        try { await navigator.share(data); return; } catch (_) { /* cancelado */ }
+      }
+      try {
+        await navigator.clipboard.writeText(location.href);
+        toast("Enlace copiado ✓");
+      } catch (_) {
+        open("https://wa.me/?text=" + encodeURIComponent(data.text + " " + location.href), "_blank", "noopener");
+      }
+    });
+
+    document.getElementById("save").addEventListener("click", () => {
+      const out = document.createElement("canvas");
+      out.width = canvas.width;
+      out.height = canvas.height;
+      const o = out.getContext("2d");
+      o.drawImage(canvas, 0, 0);
+      o.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const grad = o.createLinearGradient(0, H * 0.72, 0, H);
+      grad.addColorStop(0, "rgba(40,22,2,0)");
+      grad.addColorStop(1, "rgba(40,22,2,.65)");
+      o.fillStyle = grad;
+      o.fillRect(0, H * 0.72, W, H * 0.28);
+      o.textAlign = "center";
+      o.fillStyle = "#fff7e0";
+      o.font = `600 ${Math.round(W * 0.062)}px "Cormorant Garamond", serif`;
+      o.fillText("Un ramo de gracias", W / 2, H - 58);
+      o.font = `700 ${Math.round(W * 0.03)}px "Nunito", sans-serif`;
+      o.fillStyle = "rgba(255,244,210,.9)";
+      o.fillText("Día de las Flores Amarillas · Crisber", W / 2, H - 28);
+      const a = document.createElement("a");
+      a.download = "ramo-de-gracias.png";
+      a.href = out.toDataURL("image/png");
+      a.click();
+      toast("Imagen guardada ✓");
+    });
+
+    // reveal letter on scroll into view keeps it simple; ensure focusable
+    letterScreen.setAttribute("tabindex", "-1");
+
+    addEventListener("scroll", () => noteEl.classList.remove("show"), { passive: true });
+
+    addEventListener("resize", () => {
+      const keep = grow;
+      resize();
+      grow = keep;
+    });
+
+    resize();
+    requestAnimationFrame(frame);
+  })();
+  </script>
+</body>
+</html>
