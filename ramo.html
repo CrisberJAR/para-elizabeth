@@ -235,6 +235,49 @@
     .chip:hover { transform: translateY(-1px); background: #fff8e2; }
     .chip.primary { background: linear-gradient(180deg, #ffe797, #f4b52c); border-color: transparent; color: #4a3005; }
 
+    #music {
+      position: fixed;
+      right: 14px;
+      bottom: max(16px, env(safe-area-inset-bottom));
+      z-index: 8;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font: inherit;
+      font-size: .85rem;
+      font-weight: 800;
+      cursor: pointer;
+      border: 0;
+      border-radius: 999px;
+      padding: 10px 15px;
+      color: #fff6dc;
+      background: rgba(58, 34, 6, .55);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 10px 26px rgba(50, 26, 0, .28);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .5s ease, transform .16s ease;
+      white-space: nowrap;
+    }
+    body.growing #music, body.grown #music { opacity: 1; pointer-events: auto; }
+    #music:hover { transform: translateY(-2px); }
+    #music .wave { display: inline-flex; align-items: flex-end; gap: 2px; height: 13px; }
+    #music .wave i {
+      width: 2.5px;
+      border-radius: 2px;
+      background: #ffd968;
+      height: 5px;
+      animation: eq .9s ease-in-out infinite;
+    }
+    #music .wave i:nth-child(2) { animation-delay: .15s; height: 11px; }
+    #music .wave i:nth-child(3) { animation-delay: .3s; height: 8px; }
+    #music.paused .wave i { animation-play-state: paused; opacity: .5; }
+    @keyframes eq {
+      0%, 100% { transform: scaleY(.45); }
+      50% { transform: scaleY(1); }
+    }
+    #yt { position: fixed; left: -600px; top: 0; width: 300px; height: 200px; }
+
     .toast {
       position: fixed;
       left: 50%;
@@ -253,6 +296,9 @@
     }
     .toast.show { opacity: 1; transform: translate(-50%, 0); }
 
+    @media (max-width: 560px) {
+      .hint { margin-bottom: 64px; }
+    }
     @media (max-width: 420px) {
       .letter { padding: 28px 22px 24px; border-radius: 22px; }
       .letter p { font-size: 1.18rem; }
@@ -274,8 +320,8 @@
     <section class="screen">
       <div class="intro">
         <p class="eyebrow">21 de septiembre · Flores amarillas</p>
-        <h1>Un ramo de gracias</h1>
-        <p class="sub">Las flores amarillas no son solo de amor. También son de alegría, de gratitud y de la gente que ilumina. Este ramo es para ti.</p>
+        <h1>Un ramo para ti</h1>
+        <p class="sub">Las flores amarillas no son solo de amor: también son de alegría y de gratitud. Este ramo es para las mujeres que iluminan mi vida.</p>
         <button class="btn" id="plant" type="button">Sembrar el ramo</button>
       </div>
       <p class="hint" id="hint">Toca la pantalla para regar 💧</p>
@@ -283,12 +329,13 @@
 
     <section class="letter-screen" id="letterScreen">
       <article class="letter">
-        <p class="top">Para las personas que iluminan</p>
-        <p class="big">Gracias por estar.</p>
-        <p>Hoy, en el Día de las Flores Amarillas, quise sembrar algo que no se marchite y regalárselo a quienes hacen que mis días sean más livianos: mi mamá, mis hermanas, mis amigas.</p>
-        <p>Gracias por las risas que no se planean, por los audios larguísimos, por los consejos que sí sirvieron y por aparecer también en los días grises.</p>
-        <p>Cada flor de este ramo tiene un gracias distinto. Ábrelas tocándolas: ahí les dejé lo que a veces no digo en voz alta.</p>
-        <p>Ojalá este año les traiga tanto amarillo como el que ustedes me regalan.</p>
+        <p class="top">Para las mujeres de mi vida</p>
+        <p class="big">Este ramo es para ustedes.</p>
+        <p>Para mi mamá, para mis hermanas, para mis amigas. Para las que sostienen, las que empujan, las que aconsejan y las que aguantan sin que se les note el cansancio.</p>
+        <p>Ustedes no necesitan que nadie las complete: ya son historia completa. Fuertes cuando toca, suaves cuando eligen, valientes incluso con miedo.</p>
+        <p>Gracias por cuidar sin cobrar, por escuchar sin apurar y por hacer que un día cualquiera se sienta especial.</p>
+        <p>Cada flor de este ramo guarda algo que pienso de ustedes. Tóquenlas una por una: ahí les dejé lo que a veces no digo en voz alta.</p>
+        <p>Feliz Día de las Flores Amarillas. Que reciban todo el amarillo que reparten.</p>
         <p class="sign">Con cariño, Crisber</p>
         <div class="actions">
           <button class="chip primary" id="share" type="button">Compartir el ramo</button>
@@ -300,8 +347,14 @@
     </section>
   </div>
 
+  <button id="music" class="paused" type="button" aria-pressed="false">
+    <span class="wave" aria-hidden="true"><i></i><i></i><i></i></span>
+    <span id="music-label">Mujeres · Arjona</span>
+  </button>
+
   <div class="note" id="note" aria-live="polite"></div>
   <div class="toast" id="toast" role="status"></div>
+  <div id="yt"></div>
 
   <script>
   "use strict";
@@ -320,18 +373,18 @@
     const letterScreen = document.getElementById("letterScreen");
 
     const GRATITUDE = [
-      "Gracias por escucharme sin apurarme.",
-      "Gracias por las risas que no se planean.",
-      "Gracias por los consejos que sí funcionaron.",
-      "Gracias por aparecer en los días grises.",
-      "Gracias por celebrar mis logros como tuyos.",
-      "Gracias por los audios de cinco minutos.",
-      "Gracias por tu paciencia infinita.",
-      "Gracias por ser familia, de sangre o elegida.",
-      "Gracias por hacer que todo pese menos.",
-      "Gracias por seguir aquí después de tanto.",
-      "Gracias por decirme la verdad con cariño.",
-      "Gracias por cuidarme incluso de mí."
+      "Haces ver fácil lo que no lo es.",
+      "Tu fuerza no se aprende en ningún lado.",
+      "Tienes el don de que un lugar se sienta casa.",
+      "Aconsejas mejor de lo que tú crees.",
+      "Eres valiente incluso cuando tienes miedo.",
+      "Tu risa arregla días completos.",
+      "Cuidas de todos. Hoy te toca a ti.",
+      "No te rindes, y eso a otros les da ejemplo.",
+      "Tu ternura no te quita nada de carácter.",
+      "Vales más de lo que te dices frente al espejo.",
+      "Sabes escuchar, y hoy eso es un lujo.",
+      "Tu presencia se nota cuando faltas."
     ];
     const STAGES = [
       [0.00, "Sembrando la semilla…"],
@@ -973,9 +1026,69 @@
       document.body.classList.remove("grown");
       document.body.classList.add("growing");
       hint.textContent = "Toca la pantalla para regar 💧";
+      playMusic();
       build();
       if (reduceMotion) { grow = 1; finish(); }
     }
+
+    // ---------- música: Mujeres (Ricardo Arjona) ----------
+    // el primer video es el que pidió el usuario; si YouTube bloquea el embed,
+    // el reproductor pasa solo al siguiente candidato.
+    const TRACKS = ["XinWMXdfOM4", "ucyQM5z2qHQ"];
+    const musicBtn = document.getElementById("music");
+    const musicLabel = document.getElementById("music-label");
+    let player = null;
+    let trackIndex = 0;
+    let wantPlay = false;
+    let playing = false;
+    let embedFailed = false;
+
+    window.onYouTubeIframeAPIReady = function () {
+      player = new YT.Player("yt", {
+        videoId: TRACKS[trackIndex],
+        playerVars: { autoplay: 0, controls: 0, rel: 0, modestbranding: 1, playsinline: 1, fs: 0, disablekb: 1 },
+        events: {
+          onReady: () => { player.setVolume(75); if (wantPlay) playMusic(); },
+          onStateChange: (e) => {
+            playing = e.data === 1;
+            musicBtn.classList.toggle("paused", !playing);
+            musicBtn.setAttribute("aria-pressed", playing ? "true" : "false");
+            if (e.data === 0) { player.seekTo(0); player.playVideo(); }
+          },
+          onError: () => {
+            if (trackIndex < TRACKS.length - 1) {
+              trackIndex += 1;
+              player.loadVideoById(TRACKS[trackIndex]);
+              if (wantPlay) playMusic();
+              return;
+            }
+            embedFailed = true;
+            musicLabel.textContent = "Escuchar Mujeres";
+          }
+        }
+      });
+    };
+
+    function playMusic() {
+      wantPlay = true;
+      if (!player || typeof player.playVideo !== "function") return;
+      player.unMute();
+      player.setVolume(75);
+      player.playVideo();
+    }
+
+    musicBtn.addEventListener("click", () => {
+      if (embedFailed) {
+        open("https://www.youtube.com/watch?v=" + TRACKS[TRACKS.length - 1], "_blank", "noopener");
+        return;
+      }
+      if (playing) player.pauseVideo();
+      else playMusic();
+    });
+
+    const ytTag = document.createElement("script");
+    ytTag.src = "https://www.youtube.com/iframe_api";
+    document.head.appendChild(ytTag);
 
     plantBtn.addEventListener("click", start);
     againBtn.addEventListener("click", () => {
